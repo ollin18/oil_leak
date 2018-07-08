@@ -19,7 +19,7 @@ ollin18/presage:0.1 /bin/bash
 ## Inside the container run:
 ### To train
 ```
-src/train.py --yi "2017" --yf "2017" --mi "01" --mf "03"
+/src/train.py --yi "2017" --yf "2017" --mi "01" --mf "03"
 ```
 You can change the parameters. They stand for initial and final year and month.
 
