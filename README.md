@@ -16,18 +16,18 @@ docker run -it --rm \
 ollin18/presage:0.1 /bin/bash
 ```
 
-## Inside docker run:
+## Inside the container run:
 ### To train
 ```
 src/train.py --yi "2017" --yf "2017" --mi "01" --mf "03"
 ```
-You can change the parameters, they stand for initial and final year and month.
+You can change the parameters. They stand for initial and final year and month.
 
 ### To predict
 ```
 /src/predict.py --y "2017" --m "12" --d "17"
 ```
-The parameters stands for year, month, day.
+The parameters stand for year, month, day.
 
 TODO
 * Add parameters such as epoch and batch size
