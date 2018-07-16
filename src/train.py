@@ -77,8 +77,8 @@ both = both.join(GRN_MTR).fillna(0)
 values = both.values
 values = values.astype('float32')
 scaler = MinMaxScaler(feature_range=(0, 1))
-joblib.dump(scaler, "/data/scaler.save")
 scaled = scaler.fit_transform(values)
+joblib.dump(scaler, "/data/scaler.save")
 
 reframed = series_to_supervised(scaled, 180, 1)
 
@@ -103,27 +103,39 @@ model.add(Dense(180, input_shape=(train_X.shape[1], train_X.shape[2]),\
         activation='relu'))
 model.add(Dropout(0.2))
 model.add(Dense(180,activation='relu'))
+#  model.add(Dropout(0.2))
 model.add(Dense(180,activation='relu'))
+#  model.add(Dropout(0.2))
 model.add(Dense(1))
 model.compile(loss='mae', optimizer='adam')
 
 # fit network
-filepath = "/data/best_weights3m.hdf5"
+filepath = "/data/best_weights.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 
 train_y = np.expand_dims(np.expand_dims(train_y,-1),-1)
 test_y  = np.expand_dims(np.expand_dims(test_y,-1),-1)
 
-history = model.fit(train_X, train_y, epochs=1000, batch_size=500,\
+history = model.fit(train_X, train_y, epochs=30000, batch_size=2500,\
         validation_data=(test_X, test_y), verbose=2, shuffle=False,\
         callbacks=callbacks_list)
 
 # make a prediction
 yhat = model.predict(test_X)
 yhat = yhat[:,0]
-allset = np.concatenate((yhat,yhat),axis=1)
-allset = np.concatenate((allset,yhat),axis=1)
+
+###########################################
+###### original scale to append yhat ######
+###########################################
+sizing = scaled.shape[0]-yhat.shape[0]
+orig_test = scaled[sizing:,:]
+orig_X = orig_test[:,:-1]
+###########################################
+###########################################
+###########################################
+
+allset = np.concatenate((orig_X,yhat),axis=1)
 yhat = scaler.inverse_transform(allset)[:,[2]]
 
 pred = DataFrame(yhat)
@@ -137,7 +149,7 @@ ambas.columns = ["pred","real","diff"]
 
 # Save results
 plt.figure()
-plot = ambas.plot(figsize=(30,5),title="Prediction vs real "+"test "\
+plot = ambas.plot(/figsize=(30,5),title="Prediction vs real "+"test "\
         +args.yi+"/"+args.yf+" "+args.mi+"/"+args.mf);
 fig = plot.get_figure()
 fig.savefig("/figs/Prediction_vs_real_test_"+args.yi+"-"+args.yf\
