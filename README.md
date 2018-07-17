@@ -13,6 +13,7 @@ docker run -it --rm \
 -v $(pwd)/data:/data \
 -v $(pwd)/figs:/figs \
 -v $(pwd)/src:/src \
+-p 1433:1433 \
 ollin18/presage:0.1 /bin/bash
 ```
 
