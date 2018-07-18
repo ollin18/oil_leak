@@ -32,7 +32,5 @@ The parameters stand for year, month, day.
 
 TODO
 * Add parameters such as epoch and batch size
-* Connect to SQL database
 * Real-time predictions
-* CUDA integration
 * Pass args through docker run
