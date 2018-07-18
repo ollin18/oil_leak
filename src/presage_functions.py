@@ -11,6 +11,42 @@ from pandas import concat
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_squared_error
+import os
+import pyodbc
+import dotenv
+from pathlib import Path
+from dotenv import Dotenv
+import pandas as pd
+env_path = Path('/data') / '.env'
+dotenv = Dotenv("/data/.env")
+os.environ.update(dotenv)
+
+def connect_db():
+    cnxn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server};"
+                      "SERVER="+os.environ.get("PRHOST")+";"
+                      "DATABASE="+os.environ.get("PRDATABASE")+";"
+                      "UID="+os.environ.get("PR_USER")+";"
+                      "PWD="+os.environ.get("PR_PASSWORD")+";",
+                      autocommit=True)
+    return cnxn
+
+def list_tables(con):
+    cursor = con.cursor()
+    cursor.execute("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'")
+    for row in cursor:
+        print('row = %r' % (row,))
+
+def get_flow_between(con,place,yeari,monthi,dayi,yearf,monthf,dayf):
+    sql = "SELECT * FROM " + place + " WHERE " +\
+        "THE_TIME_STAMP >= '"+yeari+"-"+monthi+"-"+dayi+ "' AND " +\
+        "THE_TIME_STAMP <= '"+yearf+"-"+monthf+"-"+dayf+"'"
+    dataf = pd.read_sql(sql,con)
+    #  dataf = dataf.loc[dataf["THE_TIME_STAMP"] != '\x1a']
+    dataf['THE_TIME_STAMP'] = pd.to_datetime(dataf['THE_TIME_STAMP'],format="%Y-%m-%d %H:%M:%S.%f")
+    dataf = dataf.sort_values('THE_TIME_STAMP')
+    dataf = dataf.set_index('THE_TIME_STAMP')
+    return dataf
+
 
 def read_datacsv(place,year,month,day):
     firstm = int(month)

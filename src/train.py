@@ -33,35 +33,26 @@ parser.add_argument("--yi",type=str, help="The initial year")
 parser.add_argument("--yf",type=str, help="The final year")
 parser.add_argument("--mi",type=str, help="The initial month")
 parser.add_argument("--mf",type=str, help="The final month")
+parser.add_argument("--di",type=str, help="The initial day")
+parser.add_argument("--df",type=str, help="The final day")
 
 args = parser.parse_args()
 
-DON  = read_month("BF_DON",args.yi,args.mi)
-s450 = read_month("BF_450",args.yi,args.mi)
-GRN  = read_month("BF_GRN",args.yi,args.mi)
+cnxn = connect_db()
 
-yeari = int(args.yi)
-yearf = int(args.yf)
-monthi = int(args.mi)
-monthf = int(args.mf)
-
-for year in np.arange(yeari,yearf+1):
-    for month in np.arange(monthi,monthf):
-        DON=DON.append(read_month("BF_DON",str(year),str(month).zfill(2)))
-        s450=s450.append(read_month("BF_450",str(year),str(month).zfill(2)))
-        GRN=GRN.append(read_month("BF_GRN",str(year),str(month).zfill(2)))
-
-
+DON = get_flow_between(cnxn,"AUX_BF_DON",args.yi,args.mi,args.di,args.yf,args.mf,args.df)
 DON_MTR_12 = DON.loc[DON['DI_DEVICE_NAME'] == "BF_DON_MTR-12IN"]
 DON_MTR_12 = DON_MTR_12.loc[DON_MTR_12['TI_TAG_DESCRIPTION'] == "Meter flow rate"]
 DON_MTR_12 = DON_MTR_12[["TD_TAG_VALUE"]]
 DON_MTR_12.columns = ["DON_FLOW"]
 
+s450 = get_flow_between(cnxn,"AUX_BF_450",args.yi,args.mi,args.di,args.yf,args.mf,args.df)
 s450_MTR = s450.loc[s450['DI_DEVICE_NAME'] == "BF_450_MTR-OUTGOING"]
 s450_MTR = s450_MTR.loc[s450_MTR['TI_TAG_DESCRIPTION'] == "Meter flow rate"]
 s450_MTR = s450_MTR[["TD_TAG_VALUE"]]
 s450_MTR.columns = ["450_FLOW"]
 
+GRN = get_flow_between(cnxn,"AUX_BF_GRN",args.yi,args.mi,args.di,args.yf,args.mf,args.df)
 GRN_MTR = GRN.loc[GRN['DI_DEVICE_NAME'] == "BF_GRN_MTR-STATION"]
 GRN_MTR = GRN_MTR.loc[GRN_MTR['TI_TAG_DESCRIPTION'] == "Meter flow rate"]
 GRN_MTR = GRN_MTR[["TD_TAG_VALUE"]]
@@ -149,7 +140,7 @@ ambas.columns = ["pred","real","diff"]
 
 # Save results
 plt.figure()
-plot = ambas.plot(/figsize=(30,5),title="Prediction vs real "+"test "\
+plot = ambas.plot(figsize=(30,5),title="Prediction vs real "+"test "\
         +args.yi+"/"+args.yf+" "+args.mi+"/"+args.mf);
 fig = plot.get_figure()
 fig.savefig("/figs/Prediction_vs_real_test_"+args.yi+"-"+args.yf\

@@ -29,32 +29,36 @@ from sklearn.externals import joblib
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--y",type=str, help="The year")
-parser.add_argument("--m",type=str, help="The month")
-parser.add_argument("--d",type=str, help="The day")
+parser.add_argument("--yi",type=str, help="The initial year")
+parser.add_argument("--yf",type=str, help="The final year")
+parser.add_argument("--mi",type=str, help="The initial month")
+parser.add_argument("--mf",type=str, help="The final month")
+parser.add_argument("--di",type=str, help="The initial day")
+parser.add_argument("--df",type=str, help="The final day")
 
 args = parser.parse_args()
 
-scaler = joblib.load("/data/scaler.save")
+cnxn = connect_db()
 
-DON  = read_datacsv("BF_DON",args.y,args.m,args.d)
-s450 = read_datacsv("BF_450",args.y,args.m,args.d)
-GRN  = read_datacsv("BF_GRN",args.y,args.m,args.d)
-
+DON = get_flow_between(cnxn,"AUX_BF_DON",args.yi,args.mi,args.di,args.yf,args.mf,args.df)
 DON_MTR_12 = DON.loc[DON['DI_DEVICE_NAME'] == "BF_DON_MTR-12IN"]
 DON_MTR_12 = DON_MTR_12.loc[DON_MTR_12['TI_TAG_DESCRIPTION'] == "Meter flow rate"]
 DON_MTR_12 = DON_MTR_12[["TD_TAG_VALUE"]]
 DON_MTR_12.columns = ["DON_FLOW"]
 
+s450 = get_flow_between(cnxn,"AUX_BF_450",args.yi,args.mi,args.di,args.yf,args.mf,args.df)
 s450_MTR = s450.loc[s450['DI_DEVICE_NAME'] == "BF_450_MTR-OUTGOING"]
 s450_MTR = s450_MTR.loc[s450_MTR['TI_TAG_DESCRIPTION'] == "Meter flow rate"]
 s450_MTR = s450_MTR[["TD_TAG_VALUE"]]
 s450_MTR.columns = ["450_FLOW"]
 
+GRN = get_flow_between(cnxn,"AUX_BF_GRN",args.yi,args.mi,args.di,args.yf,args.mf,args.df)
 GRN_MTR = GRN.loc[GRN['DI_DEVICE_NAME'] == "BF_GRN_MTR-STATION"]
 GRN_MTR = GRN_MTR.loc[GRN_MTR['TI_TAG_DESCRIPTION'] == "Meter flow rate"]
 GRN_MTR = GRN_MTR[["TD_TAG_VALUE"]]
 GRN_MTR.columns = ["GRN_FLOW"]
+
+scaler = joblib.load("/data/scaler.save")
 
 ### Moving average
 DON_MTR_12 = mov_avg(DON_MTR_12,"10s","1min")
@@ -136,10 +140,10 @@ ambas.columns = ["pred","real","diff"]
 
 # Save results
 plt.figure()
-plot = ambas.plot(/figsize=(30,5),title="Prediction vs real "\
-        +args.y+"/"+args.m+"/"+args.d);
+plot = ambas.plot(figsize=(30,5),title="Prediction vs real "\
+        +args.yi+"/"+args.mi+"/"+args.di);
 fig = plot.get_figure()
-fig.savefig("/figs/Prediction_vs_real_"+args.y+"-"+args.m\
-        +"-"+args.d+".png")
-ambas.to_csv("/data/Prediction_vs_real_"+args.y+"-"+args.m\
-        +"-"+args.d+".csv")
+fig.savefig("/figs/Prediction_vs_real_"+args.yi+"-"+args.mi\
+        +"-"+args.di+".png")
+ambas.to_csv("/data/Prediction_vs_real_"+args.yi+"-"+args.mi\
+        +"-"+args.di+".csv")
